@@ -1,13 +1,12 @@
 import logging
 import os
 import aiohttp
-from aiogram import Bot, Dispatcher, types, BaseMiddleware
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
-from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import Message
-from aiogram.dispatcher.middlewares import BaseMiddleware
-from aiogram.utils.executor import start_polling
+from aiogram import Bot, Dispatcher, types
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.dispatcher.filters.state import StatesGroup, State
+from aiogram.dispatcher import FSMContext
+from aiogram.utils import executor
 
 # Замените на ваши реальные токены
 TOKEN = '7414905635:AAHBlef17Zjo0x13nrTCV0X410fiyY1TOKQ'
@@ -19,14 +18,10 @@ logging.basicConfig(level=logging.INFO)
 # Инициализация бота, хранилища состояний и диспетчера
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
-dp = Dispatcher(storage=storage)
+dp = Dispatcher(bot, storage=storage)
 
 # Middleware для логирования сообщений
-class LoggingMiddleware(BaseMiddleware):
-    async def on_process_message(self, message: types.Message, data: dict):
-        logging.info(f"Получено сообщение: {message.text}")
-
-dp.update.middleware.register(LoggingMiddleware())
+dp.middleware.setup(LoggingMiddleware())
 
 # Состояния бота
 class DownloadState(StatesGroup):
@@ -40,9 +35,9 @@ async def on_shutdown(dispatcher):
     logging.info("Бот остановлен.")
 
 # Обработчик команды /start
-@dp.message(commands=["start"])
+@dp.message_handler(commands=["start"])
 async def send_welcome(message: types.Message):
-    await message.answer("Привет! Пришли мне ссылку на пост в Instagram (Reels), и я скачаю медиа для тебя.")
+    await message.reply("Привет! Пришли мне ссылку на пост в Instagram (Reels), и я скачаю медиа для тебя.")
     await DownloadState.waiting_for_url.set()  # Устанавливаем состояние ожидания ссылки
 
 # Функция для скачивания медиа из Instagram
@@ -72,7 +67,7 @@ async def download_instagram_media(url: str) -> str | None:
                 raise ValueError("Не удалось получить медиа URL.")
 
 # Обработчик сообщений с ссылками (в состоянии ожидания ссылки)
-@dp.message(state=DownloadState.waiting_for_url)
+@dp.message_handler(state=DownloadState.waiting_for_url)
 async def handle_message(message: types.Message, state: FSMContext):
     url = message.text
 
@@ -81,16 +76,16 @@ async def handle_message(message: types.Message, state: FSMContext):
             file_path = await download_instagram_media(url)
             if file_path:
                 with open(file_path, "rb") as file:
-                    await message.answer_document(file)
+                    await message.reply_document(file)
                 os.remove(file_path)  # Удаляем файл после отправки
         except Exception as e:
             logging.error(f"Ошибка при скачивании медиа: {e}")
-            await message.answer("Произошла ошибка при скачивании. Попробуйте позже.")
+            await message.reply("Произошла ошибка при скачивании. Попробуйте позже.")
     else:
-        await message.answer("Пожалуйста, пришлите корректную ссылку на пост в Instagram.")
+        await message.reply("Пожалуйста, пришлите корректную ссылку на пост в Instagram.")
 
     await state.finish()  # Завершаем состояние ожидания ссылки
 
 # Запуск бота
 if __name__ == '__main__':
-    start_polling(dp, skip_updates=True, on_startup=on_startup, on_shutdown=on_shutdown)
+    executor.start_polling(dp, skip_updates=True, on_startup=on_startup, on_shutdown=on_shutdown)
