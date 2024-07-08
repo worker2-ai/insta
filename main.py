@@ -2,9 +2,9 @@ import logging
 import os
 import aiohttp
 from aiogram import Bot, Dispatcher, types, BaseMiddleware
-from aiogram.contrib.fsm_storage.memory import MemoryStorage  # Для хранения состояний
-from aiogram.dispatcher.filters.state import StatesGroup, State  # Для работы с состояниями
-from aiogram.dispatcher import FSMContext  # Для управления состояниями
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.dispatcher.filters.state import StatesGroup, State
+from aiogram.dispatcher import FSMContext
 
 # Замените на ваши реальные токены
 TOKEN = '7414905635:AAHBlef17Zjo0x13nrTCV0X410fiyY1TOKQ'
@@ -47,8 +47,8 @@ async def download_instagram_media(url: str) -> str | None:
     # ... (тот же код, что и раньше)
 
 # Обработчик сообщений с ссылками (в состоянии ожидания ссылки)
-@dp.message_handler(state=DownloadState.waiting_for_url)
-async def handle_message(message: types.Message, state: FSMContext):
+@dp.message_handler(state=DownloadState.waiting_for_url) # <- Убрал пустую строку
+async def handle_message(message: types.Message, state: FSMContext):  # <- Отступ здесь
     url = message.text
 
     if "instagram.com/reel/" in url or "instagram.com/p/" in url:
