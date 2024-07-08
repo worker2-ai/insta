@@ -1,3 +1,2 @@
 aiogram==2.23.1
-aiohttp
-requests
+aiohttp==3.8.1
