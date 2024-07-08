@@ -1,8 +1,9 @@
 import logging
 import os
 import aiohttp
-from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.middlewares.logging import LoggingMiddleware
+from aiogram.types import Message
+from aiogram.dispatcher.middlewares import BaseMiddleware
+
 from aiogram.utils import executor
 
 # Введите сюда свой токен бота и ключ RapidAPI
