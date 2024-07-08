@@ -3,8 +3,7 @@ import os
 import aiohttp
 from aiogram import Bot, Dispatcher, types, BaseMiddleware
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher.filters.state import StatesGroup, State
-from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, Statefrom aiogram.dispatcher import FSMContext
 
 # Замените на ваши реальные токены
 TOKEN = '7414905635:AAHBlef17Zjo0x13nrTCV0X410fiyY1TOKQ'
@@ -42,13 +41,36 @@ async def send_welcome(message: types.Message):
     await message.reply("Привет! Пришли мне ссылку на пост в Instagram (Reels), и я скачаю медиа для тебя.")
     await DownloadState.waiting_for_url.set()  # Устанавливаем состояние ожидания ссылки
 
-# Функция для скачивания медиа из Instagram (без изменений)
+# Функция для скачивания медиа из Instagram
 async def download_instagram_media(url: str) -> str | None:
-    # ... (тот же код, что и раньше)
+    api_url = "https://instagram-downloader.p.rapidapi.com/index"
+    querystring = {"url": url}
+    headers = {
+        "x-rapidapi-host": "instagram-downloader.p.rapidapi.com",
+        "x-rapidapi-key": RAPIDAPI_KEY,
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(api_url, headers=headers, params=querystring) as response:
+            response_json = await response.json()
+
+            if response.status == 200 and "result" in response_json:
+                result = response_json["result"]
+                media_url = result["video_url"] if result["is_video"] else result["image_url"]
+                local_filename = url.split("/")[-2] + (".mp4" if result["is_video"] else ".jpg")
+
+                async with session.get(media_url) as media_response:
+                    with open(local_filename, "wb") as f:
+                        f.write(await media_response.read())
+
+                return local_filename
+            else:
+                raise ValueError("Не удалось получить медиа URL.")
+
 
 # Обработчик сообщений с ссылками (в состоянии ожидания ссылки)
-@dp.message_handler(state=DownloadState.waiting_for_url) # <- Убрал пустую строку
-async def handle_message(message: types.Message, state: FSMContext):  # <- Отступ здесь
+@dp.message_handler(state=DownloadState.waiting_for_url) 
+async def handle_message(message: types.Message, state: FSMContext):
     url = message.text
 
     if "instagram.com/reel/" in url or "instagram.com/p/" in url:
