@@ -1,10 +1,9 @@
 import logging
 import os
 import aiohttp
-from aiogram.types import Message
-from aiogram.dispatcher.middlewares import BaseMiddleware
-
+from aiogram import Bot, Dispatcher, types, BaseMiddleware
 from aiogram.utils import executor
+from aiogram.types import Message
 
 # Введите сюда свой токен бота и ключ RapidAPI
 TOKEN = '7414905635:AAHBlef17Zjo0x13nrTCV0X410fiyY1TOKQ' 
@@ -14,6 +13,14 @@ RAPIDAPI_KEY = '96ca1f6a06mshc27c0509ae6b900p12f032jsn0b08682cf81b'
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
+
+
+# Logging middleware
+class LoggingMiddleware(BaseMiddleware):
+    async def on_process_message(self, message: Message, data: dict):
+        logging.info(f"Received message: {message.text}")
+
+
 dp.middleware.setup(LoggingMiddleware())
 
 
@@ -32,7 +39,7 @@ async def send_welcome(message: types.Message):
     )
 
 
-async def download_instagram_media(url: str) -> str:
+async def download_instagram_media(url: str) -> str | None:
     api_url = "https://instagram-downloader.p.rapidapi.com/index"
     querystring = {"url": url}
     headers = {
@@ -67,9 +74,10 @@ async def handle_message(message: types.Message):
     if "instagram.com/reel/" in url or "instagram.com/p/" in url:
         try:
             file_path = await download_instagram_media(url)
-            with open(file_path, "rb") as file:
-                await message.reply_document(file)
-            os.remove(file_path)  # Удалить файл после отправки
+            if file_path:
+                with open(file_path, "rb") as file:
+                    await message.reply_document(file)
+                os.remove(file_path)  # Удалить файл после отправки
         except Exception as e:
             logging.error(f"Ошибка при скачивании медиа: {e}")
             await message.reply(
