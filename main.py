@@ -7,6 +7,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
 from aiogram.utils import executor
+from typing import Optional
 
 # Замените на ваши реальные токены
 TOKEN = '7414905635:AAHBlef17Zjo0x13nrTCV0X410fiyY1TOKQ'
@@ -41,7 +42,7 @@ async def send_welcome(message: types.Message):
     await DownloadState.waiting_for_url.set()  # Устанавливаем состояние ожидания ссылки
 
 # Функция для скачивания медиа из Instagram
-async def download_instagram_media(url: str) -> str | None:
+async def download_instagram_media(url: str) -> Optional[str]:
     api_url = "https://instagram-downloader.p.rapidapi.com/index"
     querystring = {"url": url}
     headers = {
