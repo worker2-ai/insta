@@ -3,7 +3,8 @@ import os
 import aiohttp
 from aiogram import Bot, Dispatcher, types, BaseMiddleware
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher.filters.state import StatesGroup, Statefrom aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, State  # Corrected line
+from aiogram.dispatcher import FSMContext
 
 # Замените на ваши реальные токены
 TOKEN = '7414905635:AAHBlef17Zjo0x13nrTCV0X410fiyY1TOKQ'
