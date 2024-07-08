@@ -6,8 +6,8 @@ from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
 
 # Введите сюда свой токен бота и ключ RapidAPI
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
+TOKEN = '7414905635:AAHBlef17Zjo0x13nrTCV0X410fiyY1TOKQ' 
+RAPIDAPI_KEY = '96ca1f6a06mshc27c0509ae6b900p12f032jsn0b08682cf81b'
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
