@@ -60,11 +60,15 @@ async def download_instagram_media(url: str) -> Optional[str]:
                 local_filename = url.split("/")[-2] + (".mp4" if result["is_video"] else ".jpg")
 
                 async with session.get(media_url) as media_response:
-                    with open(local_filename, "wb") as f:
-                        f.write(await media_response.read())
-
-                return local_filename
+                    if media_response.status == 200:
+                        with open(local_filename, "wb") as f:
+                            f.write(await media_response.read())
+                        return local_filename
+                    else:
+                        logging.error(f"Не удалось скачать медиафайл, статус ответа: {media_response.status}")
+                        return None
             else:
+                logging.error(f"Ошибка API: {response_json}")
                 raise ValueError("Не удалось получить медиа URL.")
 
 # Обработчик сообщений с ссылками (в состоянии ожидания ссылки)
@@ -79,6 +83,8 @@ async def handle_message(message: types.Message, state: FSMContext):
                 with open(file_path, "rb") as file:
                     await message.reply_document(file)
                 os.remove(file_path)  # Удаляем файл после отправки
+            else:
+                await message.reply("Не удалось скачать медиафайл. Попробуйте позже.")
         except Exception as e:
             logging.error(f"Ошибка при скачивании медиа: {e}")
             await message.reply("Произошла ошибка при скачивании. Попробуйте позже.")
