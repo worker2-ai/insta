@@ -1,0 +1,29 @@
+name: Instagram Downloader Bot
+
+on:
+  push:
+    branches:
+      - main  # Запускать при пуше в ветку main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Выбираем среду выполнения
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3  # Получаем код репозитория
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'  # Указываем версию Python
+
+      - name: Install dependencies
+        run: |
+          pip install aiogram aiohttp requests
+
+      - name: Run bot
+        run: python main.py  # Запускаем ваш скрипт
+        env:
+          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}  # Используем секреты для токенов
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
